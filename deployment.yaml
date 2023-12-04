@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: my-nginx-container
-        image: docker.io/ibrahimvis/ibm:test
+        image: docker.io/ibrahimvis/ibm:
         ports:
         - containerPort: 80
 
