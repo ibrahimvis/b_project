@@ -5,7 +5,7 @@ FROM nginx:latest
 WORKDIR /usr/share/nginx/html
 
 # Copy all HTML files from the current directory to the container's working directory
-COPY . .
+COPY *.html .
 
 # Expose port 80 to the outside world
 EXPOSE 80
