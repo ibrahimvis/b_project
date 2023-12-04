@@ -27,7 +27,6 @@ jobs:
     - name: Update Deployment YAML
       run: |
         sed -i "s#docker.io.*#docker.io/ibrahimvis/ibm:${{ github.sha }}#g" deployment.yaml
-        mv ./deployment_updated.yaml ./deployment.yaml
 
     - name: Commit and Push Updated Deployment YAML
       run: |
