@@ -18,16 +18,15 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        IMAGE_TAG=$(echo $GITHUB_SHA | cut -c1-12)
+        IMAGE_TAG=${{ github.sha }}
         DOCKER_IMAGE=docker.io/ibrahimvis/ibm:${IMAGE_TAG}
         docker build -t $DOCKER_IMAGE .
         docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
         docker push $DOCKER_IMAGE
-        echo "::set-output name=image_tag::${IMAGE_TAG}"
 
     - name: Update Deployment YAML
       run: |
-        awk -v new_tag="${{ steps.build-push-deploy.outputs.image_tag }}" '{gsub(/image: docker.io\/ibrahimvis\/ibm:.*/, "image: docker.io/ibrahimvis/ibm:" new_tag)}1' ./deployment.yaml > ./deployment_updated.yaml
+        sed -i "s#docker.io.*#docker.io/ibrahimvis/ibm:${{ github.sha }}#g" deployment.yaml
         mv ./deployment_updated.yaml ./deployment.yaml
 
     - name: Commit and Push Updated Deployment YAML
