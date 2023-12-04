@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build, Push Docker Image, and Deploy to Kubernetes
 
 on:
   push:
@@ -6,18 +6,33 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Build Docker Image
+    - name: Build and Push Docker Image
       env:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        docker build -t docker.io/ibrahimvis/ibm:latest .
-        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-        docker push docker.io/ibrahimvis/ibm:latest
+        IMAGE_TAG=$(echo $GITHUB_SHA | cut -c1-12)
+        docker build -t docker.io/ibrahimvis/ibm:${IMAGE_TAG} .
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+        docker push docker.io/ibrahimvis/ibm:${IMAGE_TAG}
+        echo "::set-output name=image_tag::${IMAGE_TAG}"
+
+    - name: Update Deployment YAML
+      run: |
+        sed -i "s|image: docker.io/ibrahimvis/ibm:.*|image: docker.io/ibrahimvis/ibm:${{ steps.build-push-deploy.outputs.image_tag }}|" deployment.yaml
+
+    - name: Commit and Push Updated Deployment YAML
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add deployment.yaml
+        git commit -m "Update deployment.yaml with new image tag"
+        git push
+
