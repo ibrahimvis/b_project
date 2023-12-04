@@ -27,7 +27,8 @@ jobs:
 
     - name: Update Deployment YAML
       run: |
-        sed -i "s|image: docker.io/ibrahimvis/ibm:.*|image: docker.io/ibrahimvis/ibm:${{ steps.build-push-deploy.outputs.image_tag }}|g" deployment.yaml
+        awk -v new_tag="${{ steps.build-push-deploy.outputs.image_tag }}" '{gsub(/image: docker.io\/ibrahimvis\/ibm:.*/, "image: docker.io/ibrahimvis/ibm:" new_tag)}1' ./deployment.yaml > ./deployment_updated.yaml
+        mv ./deployment_updated.yaml ./deployment.yaml
 
     - name: Commit and Push Updated Deployment YAML
       run: |
